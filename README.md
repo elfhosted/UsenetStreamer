@@ -1,5 +1,7 @@
 # UsenetStreamer
 
+![UsenetStreamer logo](assets/icon.png)
+
 UsenetStreamer is a Stremio addon that bridges Prowlarr and NZBDav. It hosts no media itself; it simply orchestrates search and streaming through your existing Usenet stack. The addon searches Usenet indexers via Prowlarr, queues NZB downloads in NZBDav, and exposes the resulting media as Stremio streams.
 
 ## Features
@@ -63,25 +65,26 @@ See `.env.example` for the authoritative list.
 
 ### Choosing an `ADDON_BASE_URL`
 
-`ADDON_BASE_URL` must be the publicly reachable origin that hosts your addon. Stremio uses it to download the manifest, streams, and the icon (`/assets/icon.png`).
+`ADDON_BASE_URL` must be a **public HTTPS domain** that points to your addon deployment. Stremio refuses insecure origins, so you must front the addon with TLS before adding it to the catalog. DuckDNS + Let's Encrypt is an easy path, but any domain/CA combo works.
 
 1. **Grab a DuckDNS domain (free):**
    - Sign in at [https://www.duckdns.org](https://www.duckdns.org) with GitHub/Google/etc.
    - Choose a subdomain (e.g. `myusenet.duckdns.org`) and note the token DuckDNS gives you.
-   - Point the domain to your server by running their update script (CRON/systemd) so the IP stays current.
+   - Run their update script (cron/systemd/timer) so the domain always resolves to your server’s IP.
 
-2. **Serve the addon on HTTPS:**
-   - Use a reverse proxy such as Nginx, Caddy, or Traefik on your host.
-   - Obtain a certificate:
-     - **Let’s Encrypt** via certbot/lego/Traefik’s built-ins for fully trusted HTTPS.
-     - Or DuckDNS’ ACME helper if you prefer wildcard certificates.
-   - Proxy requests from `https://<your-domain>` to `http://localhost:<addon-port>` and expose `/manifest.json`, `/stream/*`, and `/assets/*`.
+2. **Serve the addon over HTTPS (non-negotiable):**
+   - Place Nginx, Caddy, or Traefik in front of the Node server.
+   - Issue a certificate:
+     - **Let’s Encrypt** with certbot, lego, or Traefik’s built-in ACME integration for a trusted cert.
+     - DuckDNS also provides an ACME helper if you prefer wildcard certificates.
+   - Terminate TLS at the proxy and forward requests from `https://<your-domain>` to `http://127.0.0.1:7000` (or your chosen port).
+   - Expose `/manifest.json`, `/stream/*`, `/nzb/*`, and `/assets/*`. Stremio will reject plain HTTP URLs.
 
-3. **Update `.env`:** set `ADDON_BASE_URL=https://myusenet.duckdns.org` and restart the addon so manifests reference the secure URL.
+3. **Update `.env`:** set `ADDON_BASE_URL=https://myusenet.duckdns.org` and restart the addon so manifests reference the secure URL. Stremio will only load the addon when `ADDON_BASE_URL` points to a valid HTTPS domain.
 
 Tips:
 
 - Keep port 7000 (or whichever you use) firewalled; let the reverse proxy handle public traffic.
 - Renew certificates automatically (cron/systemd timer or your proxy’s auto-renew feature).
 - If you deploy behind Cloudflare or another CDN, ensure WebDAV/body sizes are allowed and HTTPS certificates stay valid.
-- Finally, add `https://myusenet.duckdns.org/manifest.json` (replace with your domain) to Stremio’s addon catalog.
+- Finally, add `https://myusenet.duckdns.org/manifest.json` (replace with your domain) to Stremio’s addon catalog. Use straight HTTPS—the addon will not show up over HTTP.
