@@ -1772,10 +1772,11 @@ async function streamHandler(req, res) {
 
         const tokenSegment = ADDON_SHARED_SECRET ? `/${ADDON_SHARED_SECRET}` : '';
         const streamUrl = `${addonBaseUrl}${tokenSegment}/nzb/stream?${baseParams.toString()}`;
-        const tags = ['📰 NZB'];
-        if (quality) tags.push(quality);
-        if (sizeString) tags.push(sizeString);
-        if (isInstant) tags.push('⚡ Instant');
+  const tags = [];
+  if (isInstant) tags.push('⚡ Instant');
+  tags.push('📰 NZB');
+  if (quality) tags.push(quality);
+  if (sizeString) tags.push(sizeString);
         const name = 'UsenetStreamer';
         const behaviorHints = {
           notWebReady: true,
