@@ -53,7 +53,7 @@
             </label>
             <label>Paid Indexers (comma separated)
               <input name="NZB_TRIAGE_PRIORITY_INDEXERS" type="text" placeholder="9,33" />
-              <span class="field-hint">Use indexer IDs or names you want triage to favor first.</span>
+              <span class="field-hint">Subset of the above list that gets triaged first. Must be a comma-separated subset of “Indexer IDs / Names”.</span>
             </label>
             <label>Max Candidates
               <input name="NZB_TRIAGE_MAX_CANDIDATES" type="number" min="1" step="1" />
@@ -63,7 +63,7 @@
             </label>
             <label>Indexer IDs / Names
               <input name="INDEXER_MANAGER_INDEXERS" type="text" placeholder="-1 or sci-fi,4k" />
-              <span class="field-hint">For Prowlarr use numeric IDs (or -1 for all). For NZBHydra provide indexer names, comma separated.</span>
+              <span class="field-hint">Comma-separated list of indexers this addon may query. Prowlarr: numeric IDs, with -1 meaning “all Usenet indexers”. NZBHydra: type the indexer names exactly as shown in Hydra.</span>
             </label>
             <label class="checkbox">
               <input name="INDEXER_MANAGER_STRICT_ID_MATCH" type="checkbox" />
