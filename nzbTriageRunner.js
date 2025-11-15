@@ -68,27 +68,8 @@ function buildCandidates(nzbResults) {
   return candidates;
 }
 
-function rankCandidates(candidates, preferredSizeBytes, preferredIndexerSet) {
-  const prioritized = preferredIndexerSet.size > 0
-    ? candidates.filter((candidate) => {
-        const id = candidate.indexerId ? candidate.indexerId.toLowerCase() : null;
-        const name = candidate.indexerName ? candidate.indexerName.toLowerCase() : null;
-        if (id && preferredIndexerSet.has(id)) return true;
-        if (name && preferredIndexerSet.has(name)) return true;
-        return false;
-      })
-    : [];
-
-  const fallback = preferredIndexerSet.size > 0
-    ? candidates.filter((candidate) => {
-        const id = candidate.indexerId ? candidate.indexerId.toLowerCase() : null;
-        const name = candidate.indexerName ? candidate.indexerName.toLowerCase() : null;
-        if (id && preferredIndexerSet.has(id)) return false;
-        if (name && preferredIndexerSet.has(name)) return false;
-        return true;
-      })
-    : candidates.slice();
-
+function rankCandidates(candidates, preferredSizeBytes) {
+  // Simple ranking by size preference only (no indexer-based priority)
   const comparator = Number.isFinite(preferredSizeBytes)
     ? (a, b) => {
         const deltaA = Math.abs((a.size || 0) - preferredSizeBytes);
@@ -98,9 +79,7 @@ function rankCandidates(candidates, preferredSizeBytes, preferredIndexerSet) {
       }
     : (a, b) => (b.size || 0) - (a.size || 0);
 
-  prioritized.sort(comparator);
-  fallback.sort(comparator);
-  return prioritized.concat(fallback);
+  return candidates.slice().sort(comparator);
 }
 
 function withTimeout(promise, timeoutMs) {

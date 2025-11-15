@@ -293,7 +293,7 @@ const TRIAGE_NNTP_MAX_CONNECTIONS = toPositiveInt(process.env.NZB_TRIAGE_MAX_CON
 const TRIAGE_MAX_PARALLEL_NZBS = toPositiveInt(process.env.NZB_TRIAGE_MAX_PARALLEL_NZBS, 16);
 const TRIAGE_STAT_SAMPLE_COUNT = toPositiveInt(process.env.NZB_TRIAGE_STAT_SAMPLE_COUNT, 2);
 const TRIAGE_ARCHIVE_SAMPLE_COUNT = toPositiveInt(process.env.NZB_TRIAGE_ARCHIVE_SAMPLE_COUNT, 1);
-const TRIAGE_REUSE_POOL = toBoolean(process.env.NZB_TRIAGE_REUSE_POOL, false);
+const TRIAGE_REUSE_POOL = toBoolean(process.env.NZB_TRIAGE_REUSE_POOL, true);
 const TRIAGE_NNTP_KEEP_ALIVE_MS = toPositiveInt(process.env.NZB_TRIAGE_NNTP_KEEP_ALIVE_MS, 0);
 
 const TRIAGE_BASE_OPTIONS = {
@@ -2230,11 +2230,12 @@ async function streamHandler(req, res) {
     const overrideIndexerTokens = (triageOverrides.indexers && triageOverrides.indexers.length > 0)
       ? triageOverrides.indexers
       : null;
-    const preferredIndexerTokens = overrideIndexerTokens ?? TRIAGE_PRIORITY_INDEXERS;
+    // Use TRIAGE_PRIORITY_INDEXERS as the primary setting for which indexers to health-check
+    // If TRIAGE_HEALTH_INDEXERS is set, use it as fallback for backward compatibility
+    const healthIndexerTokens = overrideIndexerTokens ?? (TRIAGE_PRIORITY_INDEXERS.length > 0 ? TRIAGE_PRIORITY_INDEXERS : TRIAGE_HEALTH_INDEXERS);
     const serializedIndexerTokens = TRIAGE_SERIALIZED_INDEXERS.length > 0
       ? TRIAGE_SERIALIZED_INDEXERS
-      : (preferredIndexerTokens.length > 0 ? preferredIndexerTokens : []);
-    const healthIndexerTokens = overrideIndexerTokens ?? TRIAGE_HEALTH_INDEXERS;
+      : healthIndexerTokens;
     const healthIndexerSet = new Set((healthIndexerTokens || []).map((token) => normalizeIndexerToken(token)).filter(Boolean));
     const triageEligibleResults = healthIndexerSet.size > 0
       ? finalNzbResults.filter((result) => nzbMatchesIndexer(result, healthIndexerSet))
@@ -2257,7 +2258,7 @@ async function streamHandler(req, res) {
         const triageOptions = {
           allowedIndexerIds: healthIndexerTokens,
           preferredSizeBytes,
-          preferredIndexerIds: preferredIndexerTokens,
+          preferredIndexerIds: healthIndexerTokens, // Use same indexers for filtering and ranking
           serializedIndexerIds: serializedIndexerTokens,
           timeBudgetMs: TRIAGE_TIME_BUDGET_MS,
           maxCandidates: TRIAGE_MAX_CANDIDATES,
@@ -2360,20 +2361,20 @@ async function streamHandler(req, res) {
 
         if (triageStatus === 'verified') {
           triagePriority = 0;
-          triageTag = '✅ Verified';
+          triageTag = '✅';
         } else if (triageStatus === 'unverified') {
-          triageTag = '⚠️ Not Verified';
+          triageTag = '⚠️';
         } else if (triageStatus === 'blocked') {
           triagePriority = 2;
-          triageTag = '🚫 Not Playable';
+          triageTag = '🚫';
         } else if (triageStatus === 'fetch-error') {
           triagePriority = 2;
-          triageTag = '⚠️ NZB Fetch Failed';
+          triageTag = '⚠️';
         } else if (triageStatus === 'error') {
           triagePriority = 2;
-          triageTag = '⚠️ Health Check Error';
+          triageTag = '⚠️';
         } else if (triageStatus === 'pending' || triageStatus === 'skipped') {
-          if (triageOutcome?.timedOut) triageTag = '⏱️ Health Check Pending';
+          if (triageOutcome?.timedOut) triageTag = '⏱️';
         }
 
   const archiveFindings = triageInfo?.archiveFindings || [];
