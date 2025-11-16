@@ -17,15 +17,31 @@ UsenetStreamer is a Stremio addon that bridges a Usenet indexer manager (Prowlar
 
 ## Features
 
-- ID-aware search plans (IMDb/TMDB/TVDB) with automatic metadata enrichment.
+- Full Prowlarr **and** NZBHydra support with ID-aware search plans (IMDb/TMDB/TVDB) and automatic metadata enrichment.
 - Direct TVDB-prefixed Stremio IDs are accepted without Cinemeta lookups—requests translate straight into `{TvdbId:...}` searches.
-- Parallel Prowlarr/NZBHydra queries with deduplicated NZB aggregation.
-- Direct WebDAV streaming from NZBDav (no local mounts required).
-- Configurable via environment variables (see `.env.example`).
-- Fallback failure clip when NZBDav cannot deliver media.
+- Parallel indexer queries with deduplicated NZB aggregation, plus per-result language metadata for filtering or prioritizing your preferred language.
+- Direct WebDAV streaming from NZBDav (no local mounts required) with fallback failure clip when a stream cannot be delivered.
+- In-memory caching for both Stremio stream payloads and verified NZB payloads so repeat requests return instantly without hammering your stack.
 - Optional shared-secret gate so only authorized manifest/stream requests succeed.
 - Flags already-downloaded NZBs as ⚡ Instant so you know which streams will start immediately.
-- Optional NNTP-backed NZB health triage to surface playable releases first and highlight broken uploads.
+- Built-in NNTP-backed NZB health triage to surface playable releases first and highlight broken uploads.
+
+### Feature Highlights
+
+**NZBHydra Support**  
+Point `INDEXER_MANAGER` to either `prowlarr` or `nzbhydra`—the addon speaks both APIs. Hydra users can still take advantage of IMDb/TVDB/TMDB query plans, fallback text searches, and per-indexer inclusion lists exactly like Prowlarr users.
+
+**NZB Health Check**  
+When `NZB_TRIAGE_ENABLED=true`, UsenetStreamer downloads a short list of candidate NZBs, samples their archive headers over NNTP, and bubbles healthy releases to the top while flagging broken or encrypted uploads. Decisions are cached per download URL and per normalized title so later requests inherit the verdict instantly.
+
+**Caching**  
+Two caches keep responses snappy: (1) a stream-response cache keyed by `type/id/episode/query`, which lets Stremio repeat requests without re-querying your indexers, and (2) a verified NZB cache that stores small, triage-approved NZBs in memory so NZBDav can skip an extra fetch. Both caches respect configurable size and TTL limits.
+
+**Language-Based Filtering**  
+Every NZB title is parsed for language tokens (e.g., Hindi, German, Tamil). Choose `language_quality_size` sorting plus `NZB_PREFERRED_LANGUAGE` (or override per request) to have matching releases listed first, followed by other languages ordered by quality and size.
+
+**Instant Tag (NZBDav)**  
+Completed NZBDav history entries and recently mounted NZBs are tracked by normalized title. Whenever the addon notices a match, the resulting stream is labeled `⚡ Instant`, moved to the top of the list, and flagged with metadata so your player knows the file is already cached.
 
 ## Getting Started
 
@@ -51,10 +67,10 @@ docker run -d --restart unless-stopped \
    --name usenetstreamer \
    -p 7000:7000 \
    -e ADDON_SHARED_SECRET=super-secret-token \
-   ghcr.io/sanket9225/usenetstreamer:dev
+   ghcr.io/sanket9225/usenetstreamer:latest
 ```
 
-That launches the current development build, exposes the addon on port `7000`, and locks the manifest behind `/super-secret-token/…`. Add additional `-e` flags (or switch to `--env-file`) to provide your indexer, NZBDav, and NNTP credentials.
+That launches the published multi-arch image (built from v1.3.0), exposes the addon on port `7000`, and locks the manifest behind `/super-secret-token/…`. Add additional `-e` flags (or switch to `--env-file`) to provide your indexer, NZBDav, and NNTP credentials.
 
 Need a custom image? Clone this repo, adjust the code, then run `docker build -t usenetstreamer .`.
 
@@ -72,15 +88,15 @@ Visit `https://your-addon-domain/<token>/admin/` (or `http://localhost:7000/<tok
 The dashboard is guarded by the same shared secret that protects your manifest. Anyone with the token can reach it, so keep the token private.
 
 
-### NNTP Health Check (Experimental)
+### NNTP Health Check
 
-Development builds (`ghcr.io/sanket9225/usenetstreamer:dev`) ship with an NNTP-backed NZB triage pipeline. Enable it by setting:
+Enable the built-in NNTP-backed NZB triage pipeline by setting:
 
 - `NZB_TRIAGE_ENABLED=true`
 - Your NNTP host, port, and credentials (`NZB_TRIAGE_NNTP_HOST`, `NZB_TRIAGE_NNTP_USER`, `NZB_TRIAGE_NNTP_PASS`, etc.)
 - Optional tuning knobs such as `NZB_TRIAGE_TIME_BUDGET_MS` (global health-check timeout), `NZB_TRIAGE_MAX_CANDIDATES`, and `NZB_TRIAGE_REUSE_POOL`
 
-When active, the addon downloads a small batch of candidate NZBs, samples their archive headers over NNTP, and prioritises releases that look healthy. The feature is still under active development, so expect defaults to shift between dev builds.
+When active, the addon downloads a small batch of candidate NZBs, samples their archive headers over NNTP, and prioritises releases that look healthy. Tweak the knobs to fit your provider’s limits; health decisions are cached so subsequent requests instantly inherit the verdict.
 
 
 ## Environment Variables
