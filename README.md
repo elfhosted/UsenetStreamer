@@ -1,33 +1,5 @@
 # UsenetStreamer
 
-![UsenetStreamer logo](assets/icon.png)
-
-UsenetStreamer is a Stremio addon that bridges a Usenet indexer manager (Prowlarr or NZBHydra) and NZBDav. It hosts no media itself; it simply orchestrates search and streaming through your existing Usenet stack. The addon searches Usenet indexers through the manager, queues NZB downloads in NZBDav, and exposes the resulting media as Stremio streams.
-
-<h1 align="center" style="font-size:3rem; margin-bottom:0.25em;">☕ Buy Me a Coffee</h1>
-
-<p align="center">
-   <strong><a href="https://buymeacoffee.com/gaikwadsank">Buy me a coffee to keep this addon moving!</a></strong>
-</p>
-
-<h2 align="center" style="margin-top:0.5em;">
-   <a href="https://discord.gg/NJsprZyz">💬 Join our Discord for community discussions and support</a>
-</h2>
-
-
-## Features
-
-- Full Prowlarr **and** NZBHydra support with ID-aware search plans (IMDb/TMDB/TVDB) and automatic metadata enrichment.
-- Direct TVDB-prefixed Stremio IDs are accepted without Cinemeta lookups—requests translate straight into `{TvdbId:...}` searches.
-- Parallel indexer queries with deduplicated NZB aggregation, plus per-result language metadata for filtering or prioritizing your preferred language.
-- Direct WebDAV streaming from NZBDav (no local mounts required) with fallback failure clip when a stream cannot be delivered.
-- In-memory caching for both Stremio stream payloads and verified NZB payloads so repeat requests return instantly without hammering your stack.
-- Optional shared-secret gate so only authorized manifest/stream requests succeed.
-- Flags already-downloaded NZBs as ⚡ Instant so you know which streams will start immediately.
-- Built-in NNTP-backed NZB health triage to surface playable releases first and highlight broken uploads.
-
-# UsenetStreamer
-
 <p align="center">
   <img src="assets/icon.png" alt="UsenetStreamer logo" width="180" />
 </p>
@@ -192,12 +164,6 @@ Anything that can load HTTPS manifests and handle `externalPlayer` hints should 
 - **Issues & PRs:** [GitHub tracker](https://github.com/Sanket9225/UsenetStreamer/issues)
 
 Huge thanks to everyone testing, filing bugs, and sharing feature ideas.
-
----
-
-## 📄 License
-
-MIT License © Sanket Gaikwad. UsenetStreamer is an independent, community-driven addon. You need active Usenet indexers + NZBDav credentials to make use of it; no media is hosted here.
 
 ---
 
