@@ -78,6 +78,20 @@ docker run -d --restart unless-stopped \
   ghcr.io/sanket9225/usenetstreamer:latest
 ```
 
+#### Docker Compose
+
+```yaml
+services:
+  usenetstreamer:
+    image: ghcr.io/sanket9225/usenetstreamer:latest
+    container_name: usenetstreamer
+    restart: unless-stopped
+    ports:
+      - "7000:7000"
+    environment:
+      ADDON_SHARED_SECRET: super-secret-token
+```
+
 Then browse to `https://your-domain/super-secret-token/admin/` to enter your credentials. The container ships with Node 20, exposes port 7000, and supports both `linux/amd64` and `linux/arm64` thanks to `buildx`.
 
 ### Source installation
