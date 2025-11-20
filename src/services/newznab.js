@@ -62,7 +62,7 @@ const BUILTIN_NEWZNAB_PRESETS = [
     endpoint: 'https://api.althub.co.za',
     apiPath: '/api',
     description: 'Community-run indexer popular in South Africa. Requires account + API key.',
-    apiKeyUrl: 'https://althub.co.za/account'
+    apiKeyUrl: 'https://althub.co.za/profile'
   },
   {
     id: 'animetosho',
@@ -223,12 +223,12 @@ function getEnvPresetEntries() {
 }
 
 function getAvailableNewznabPresets() {
-  const presets = [...BUILTIN_NEWZNAB_PRESETS];
   const custom = getEnvPresetEntries();
-  if (custom.length) {
-    presets.push(...custom);
+  const builtin = [...BUILTIN_NEWZNAB_PRESETS];
+  if (!custom.length) {
+    return builtin;
   }
-  return presets;
+  return [...custom, ...builtin];
 }
 
 function extractErrorFromParsed(parsed) {

@@ -201,7 +201,7 @@ let INDEXER_MANAGER_INDEXERS = (() => {
   if (raw.trim() === '-1') return -1;
   return parseCommaList(raw);
 })();
-let INDEXER_LOG_PREFIX = `[${INDEXER_MANAGER_LABEL.toUpperCase()}]`;
+let INDEXER_LOG_PREFIX = '';
 let INDEXER_MANAGER_CACHE_MINUTES = (() => {
   const raw = Number(process.env.INDEXER_MANAGER_CACHE_MINUTES || process.env.NZBHYDRA_CACHE_MINUTES);
   return Number.isFinite(raw) && raw > 0 ? raw : (INDEXER_MANAGER === 'nzbhydra' ? 10 : null);
@@ -222,6 +222,16 @@ let DEBUG_NEWZNAB_TEST = toBoolean(process.env.DEBUG_NEWZNAB_TEST, false);
 let NEWZNAB_CONFIGS = newznabService.getEnvNewznabConfigs({ includeEmpty: false });
 let ACTIVE_NEWZNAB_CONFIGS = newznabService.filterUsableConfigs(NEWZNAB_CONFIGS, { requireEnabled: true, requireApiKey: true });
 const NEWZNAB_LOG_PREFIX = '[NEWZNAB]';
+
+function buildSearchLogPrefix({ manager = INDEXER_MANAGER, managerLabel = INDEXER_MANAGER_LABEL, newznabEnabled = NEWZNAB_ENABLED } = {}) {
+  const managerSegment = manager === 'none'
+    ? 'mgr=OFF'
+    : `mgr=${managerLabel.toUpperCase()}`;
+  const directSegment = newznabEnabled ? 'direct=ON' : 'direct=OFF';
+  return `[SEARCH ${managerSegment} ${directSegment}]`;
+}
+
+INDEXER_LOG_PREFIX = buildSearchLogPrefix();
 
 function isNewznabDebugEnabled() {
   return Boolean(DEBUG_NEWZNAB_SEARCH || DEBUG_NEWZNAB_TEST);
@@ -343,7 +353,6 @@ function rebuildRuntimeConfig({ log = true } = {}) {
     if (raw.trim() === '-1') return -1;
     return parseCommaList(raw);
   })();
-  INDEXER_LOG_PREFIX = `[${INDEXER_MANAGER_LABEL.toUpperCase()}]`;
   INDEXER_MANAGER_CACHE_MINUTES = (() => {
     const raw = Number(process.env.INDEXER_MANAGER_CACHE_MINUTES || process.env.NZBHYDRA_CACHE_MINUTES);
     return Number.isFinite(raw) && raw > 0 ? raw : (INDEXER_MANAGER === 'nzbhydra' ? 10 : null);
@@ -359,6 +368,11 @@ function rebuildRuntimeConfig({ log = true } = {}) {
   DEBUG_NEWZNAB_TEST = toBoolean(process.env.DEBUG_NEWZNAB_TEST, false);
   NEWZNAB_CONFIGS = newznabService.getEnvNewznabConfigs({ includeEmpty: false });
   ACTIVE_NEWZNAB_CONFIGS = newznabService.filterUsableConfigs(NEWZNAB_CONFIGS, { requireEnabled: true, requireApiKey: true });
+  INDEXER_LOG_PREFIX = buildSearchLogPrefix({
+    manager: INDEXER_MANAGER,
+    managerLabel: INDEXER_MANAGER_LABEL,
+    newznabEnabled: NEWZNAB_ENABLED,
+  });
 
   INDEXER_SORT_MODE = normalizeSortMode(process.env.NZB_SORT_MODE, 'quality_then_size');
   INDEXER_PREFERRED_LANGUAGE = resolvePreferredLanguage(process.env.NZB_PREFERRED_LANGUAGE, '');
