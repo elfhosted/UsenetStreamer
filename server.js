@@ -461,6 +461,13 @@ let TRIAGE_STAT_SAMPLE_COUNT = toPositiveInt(process.env.NZB_TRIAGE_STAT_SAMPLE_
 let TRIAGE_ARCHIVE_SAMPLE_COUNT = toPositiveInt(process.env.NZB_TRIAGE_ARCHIVE_SAMPLE_COUNT, 1);
 let TRIAGE_REUSE_POOL = toBoolean(process.env.NZB_TRIAGE_REUSE_POOL, true);
 let TRIAGE_NNTP_KEEP_ALIVE_MS = toPositiveInt(process.env.NZB_TRIAGE_NNTP_KEEP_ALIVE_MS, 0);
+
+const MAX_NEWZNAB_INDEXERS = newznabService.MAX_NEWZNAB_INDEXERS;
+const NEWZNAB_NUMBERED_KEYS = newznabService.NEWZNAB_NUMBERED_KEYS;
+const POSITIVE_HEALTH_STATUSES = new Set(['verified', 'elf-verified', 'healthy', 'good', 'ok', 'passed']);
+const NEGATIVE_HEALTH_STATUSES = new Set(['blocked', 'fetch-error', 'error']);
+const HEALTH_VISIBILITY_MODES = new Set(['all', 'hide_bad', 'instant_only']);
+
 let NZB_HEALTH_VISIBILITY = resolveHealthVisibilityEnv();
 
 let TRIAGE_BASE_OPTIONS = {
@@ -475,12 +482,6 @@ let TRIAGE_BASE_OPTIONS = {
   healthCheckTimeoutMs: TRIAGE_TIME_BUDGET_MS,
 };
 
-const MAX_NEWZNAB_INDEXERS = newznabService.MAX_NEWZNAB_INDEXERS;
-const NEWZNAB_NUMBERED_KEYS = newznabService.NEWZNAB_NUMBERED_KEYS;
-const POSITIVE_HEALTH_STATUSES = new Set(['verified', 'elf-verified', 'healthy', 'good', 'ok', 'passed']);
-const NEGATIVE_HEALTH_STATUSES = new Set(['blocked', 'fetch-error', 'error']);
-const HEALTH_VISIBILITY_MODES = new Set(['all', 'hide_bad', 'instant_only']);
-
 function normalizeHealthVisibilityMode(value) {
   if (typeof value !== 'string') return 'all';
   const normalized = value.trim().toLowerCase();
@@ -493,14 +494,6 @@ function resolveHealthVisibilityEnv() {
     return normalizeHealthVisibilityMode(process.env.NZB_HEALTH_VISIBILITY);
   }
   return 'all';
-}
-
-function applyNzbHealthConfig() {
-  nzbHealthService.configure({
-    baseUrl: NZB_HEALTH_API_BASE_URL,
-    enabled: NZB_HEALTH_API_ENABLED && Boolean(NZB_HEALTH_API_BASE_URL),
-    timeoutMs: NZB_HEALTH_API_TIMEOUT_MS,
-  });
 }
 
 function maybePrewarmSharedNntpPool() {
@@ -660,9 +653,6 @@ const ADMIN_CONFIG_KEYS = [
   'NZBDAV_CATEGORY_MOVIES',
   'NZBDAV_CATEGORY_SERIES',
   'NZB_TRIAGE_HEALTH_INDEXERS',
-  'NZB_HEALTH_API_ENABLED',
-  'NZB_HEALTH_API_BASE_URL',
-  'NZB_HEALTH_API_TIMEOUT_MS',
   'NZB_HEALTH_VISIBILITY',
   'SPECIAL_PROVIDER_ID',
   'SPECIAL_PROVIDER_URL',
