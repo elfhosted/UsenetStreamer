@@ -274,6 +274,27 @@
           </div>
         </section>
 
+        <section class="group" id="tmdbLocalizationSection">
+          <h3>TMDb Localization</h3>
+          <p class="hint">Optional: provide a TMDb API key to let UsenetStreamer build localized fallback searches when metadata is missing.</p>
+          <div class="field-grid">
+            <label>TMDb API Key
+              <input name="TMDB_API_KEY" type="password" autocomplete="off" data-tmdb-api />
+              <span class="field-hint">Create a “Read Access Token (v4 auth)” in your TMDb dashboard and paste it here.</span>
+            </label>
+          </div>
+          <div class="tmdb-details hidden" data-tmdb-details>
+            <div class="field-grid">
+              <label>Preferred Localization Language
+                <input name="TMDB_PREFERRED_LANGUAGE" type="text" placeholder="en-US" data-tmdb-language />
+                <span class="field-hint">Two-letter or locale codes (e.g. en, en-US, es-ES). This steers TMDb translation lookups.</span>
+              </label>
+            </div>
+            <p class="hint" data-tmdb-locale-hint>We’ll auto-fill this using your browser locale when it’s blank.</p>
+          </div>
+          <p class="hint" data-tmdb-empty>Save a TMDb API key to unlock localization options.</p>
+        </section>
+
         <section class="group">
           <h3>NZBDav Connection</h3>
           <div class="field-grid">
